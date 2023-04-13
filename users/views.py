@@ -1,21 +1,28 @@
 from rest_framework.decorators import api_view
-from .serializers import UserLoginValidateSerializer, UserCreateValidateSerializer, UserConfirmValidateSerializer
+from .serializers import UserLoginValidateSerializer, UserCreateValidateSerializer, UserConfirmValidateSerializer, UserLoginSerializer
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.models import User
 from .models import Confirm
+from rest_framework.views import APIView
 
-@api_view(['POST'])
-def authorization_api_view(request):
-    serializer = UserLoginValidateSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    user = authenticate(**serializer.validated_data)
-    if user:
-        token, _ = Token.objects.get_or_create(user=user)
-        return Response(data={'key': token.key})
-    return Response(data={'errors': 'Username or password not correct'}, status=status.HTTP_401_UNAUTHORIZED)
+
+class AuthorizationApiView(APIView):
+    def post(self, request):
+        serializer = UserLoginSerializer
+        serializer.is_valid(raise_exception=True)
+        username = request.data.get("username")
+        password = request.data.get('password')
+        user = authenticate(username=username, password=password)
+        if user:
+            token, created = Token.objects.get_or_create(user=user)
+            return Response(data={'key': token.key})
+        return Response(status=status.HTTP_401_UNAUTHORIZED, data={'errors': 'Username osr password wrong!'})
+
+
+
 
 @api_view(['POST'])
 def registration_api_view(request):

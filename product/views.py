@@ -7,8 +7,23 @@ from .models import Product, Review, Category
 from .serializer import ProductSerializer, ReviewSerializer, CategorySerializer,\
     ProductReviewsSerializer, ProductValidateSerializer, CategoryValidateSerializer,\
     ReviewValidateSerializer
+from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.pagination import PageNumberPagination
 # Create your views here.
 
+
+class ProductListAPIView(ListCreateAPIView):
+    serializer_class = ProductSerializer
+    validate_serializer_class = ProductValidateSerializer
+    queryset = Product.objects.all()
+    pagination_class = PageNumberPagination
+
+
+class ProductDeralilAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    validate_serializer_class = ProductValidateSerializer
+    lookup_field = 'id'
 
 @api_view(['GET', 'POST'])
 def product_list_api_view(request):
@@ -148,3 +163,4 @@ def create_product_api_view(request):
     product.price = request.data.get('price')
     product.category = request.data.get('category')
     return Response(data=ProductSerializer(product).data)
+
